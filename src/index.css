@@ -19,8 +19,10 @@ html[data-theme='default'] {
   --accent-soft: rgba(91, 125, 245, 0.14);
   --accent-glow: rgba(91, 125, 245, 0.28);
   --secondary-glow: rgba(102, 207, 175, 0.24);
-  --cursor-fill: rgba(255, 255, 255, 0.26);
-  --cursor-glow: rgba(91, 125, 245, 0.36);
+  --cursor-fill: rgba(20, 32, 43, 0.08);
+  --cursor-glow: rgba(20, 32, 43, 0.12);
+  --cursor-border: rgba(20, 32, 43, 0.25);
+  --cursor-dot: rgba(20, 32, 43, 0.8);
 }
 
 html[data-theme='dark'] {
@@ -37,8 +39,10 @@ html[data-theme='dark'] {
   --accent-soft: rgba(126, 164, 255, 0.16);
   --accent-glow: rgba(126, 164, 255, 0.32);
   --secondary-glow: rgba(94, 226, 217, 0.22);
-  --cursor-fill: rgba(126, 164, 255, 0.2);
-  --cursor-glow: rgba(126, 164, 255, 0.42);
+  --cursor-fill: rgba(233, 240, 255, 0.12);
+  --cursor-glow: rgba(126, 164, 255, 0.25);
+  --cursor-border: rgba(233, 240, 255, 0.3);
+  --cursor-dot: rgba(233, 240, 255, 0.8);
 }
 
 html[data-theme='ocean'] {
@@ -55,8 +59,10 @@ html[data-theme='ocean'] {
   --accent-soft: rgba(60, 190, 201, 0.16);
   --accent-glow: rgba(60, 190, 201, 0.3);
   --secondary-glow: rgba(115, 224, 214, 0.2);
-  --cursor-fill: rgba(98, 230, 222, 0.2);
-  --cursor-glow: rgba(60, 190, 201, 0.42);
+  --cursor-fill: rgba(115, 224, 214, 0.12);
+  --cursor-glow: rgba(115, 224, 214, 0.25);
+  --cursor-border: rgba(115, 224, 214, 0.35);
+  --cursor-dot: #73e0d6;
 }
 
 @layer base {

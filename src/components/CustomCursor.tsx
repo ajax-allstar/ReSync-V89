@@ -33,8 +33,8 @@ export function CustomCursor() {
 
     const onPointerMove = (event: PointerEvent) => {
       setVisible(true);
-      pointerX.set(event.clientX - 9);
-      pointerY.set(event.clientY - 9);
+      pointerX.set(event.clientX);
+      pointerY.set(event.clientY);
     };
 
     const onPointerLeave = () => setVisible(false);
@@ -68,10 +68,12 @@ export function CustomCursor() {
   return (
     <motion.div
       aria-hidden="true"
-      className="pointer-events-none fixed left-0 top-0 z-50 hidden items-center justify-center rounded-full border border-white/40 bg-[var(--cursor-fill)] backdrop-blur-xl md:flex"
+      className="pointer-events-none fixed left-0 top-0 z-50 hidden items-center justify-center rounded-full border border-[var(--cursor-border)] bg-[var(--cursor-fill)] backdrop-blur-xl md:flex"
       style={{
         x,
         y,
+        translateX: '-50%',
+        translateY: '-50%',
         width: interactive ? 38 : 18,
         height: interactive ? 38 : 18,
         opacity: visible ? 1 : 0,
@@ -84,7 +86,7 @@ export function CustomCursor() {
       }}
       transition={{ type: 'spring', stiffness: 320, damping: 28 }}
     >
-      <span className="h-2 w-2 rounded-full bg-white/80" />
+      <span className="h-2 w-2 rounded-full bg-[var(--cursor-dot)]" />
     </motion.div>
   );
 }
