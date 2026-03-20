@@ -68,25 +68,32 @@ export function CustomCursor() {
   return (
     <motion.div
       aria-hidden="true"
-      className="pointer-events-none fixed left-0 top-0 z-50 hidden items-center justify-center rounded-full border border-[var(--cursor-border)] bg-[var(--cursor-fill)] backdrop-blur-xl md:flex"
+      className="pointer-events-none fixed left-0 top-0 z-50 hidden items-center justify-center rounded-full border border-[var(--cursor-border)] bg-[linear-gradient(145deg,rgba(255,255,255,0.34),var(--cursor-fill))] backdrop-blur-xl md:flex"
       style={{
         x,
         y,
         translateX: '-50%',
         translateY: '-50%',
-        width: interactive ? 38 : 18,
-        height: interactive ? 38 : 18,
+        width: interactive ? 28 : 20,
+        height: interactive ? 28 : 20,
         opacity: visible ? 1 : 0,
         boxShadow: interactive
-          ? '0 0 40px var(--cursor-glow), inset 0 0 18px rgba(255,255,255,0.22)'
-          : '0 0 24px var(--cursor-glow)',
+          ? '0 12px 30px rgba(8, 15, 28, 0.2), 0 0 36px var(--cursor-glow), inset 0 1px 0 rgba(255,255,255,0.4)'
+          : '0 10px 24px rgba(8, 15, 28, 0.18), 0 0 22px var(--cursor-glow), inset 0 1px 0 rgba(255,255,255,0.34)',
       }}
       animate={{
-        scale: interactive ? 1.15 : 1,
+        scale: interactive ? 1.08 : 1,
       }}
       transition={{ type: 'spring', stiffness: 320, damping: 28 }}
     >
-      <span className="h-2 w-2 rounded-full bg-[var(--cursor-dot)]" />
+      <span
+        className="h-[42%] w-[42%] rounded-full"
+        style={{
+          background:
+            'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(255,255,255,0.24) 50%, transparent 72%)',
+          boxShadow: '0 0 12px rgba(255,255,255,0.18)',
+        }}
+      />
     </motion.div>
   );
 }

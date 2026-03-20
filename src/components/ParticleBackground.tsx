@@ -4,6 +4,8 @@ import { useTheme } from '../providers/ThemeProvider';
 import type { ThemeMode } from '../types/theme';
 
 type Particle = {
+  ox: number;
+  oy: number;
   x: number;
   y: number;
   vx: number;
@@ -11,87 +13,69 @@ type Particle = {
   phase: number;
   size: number;
   alpha: number;
-  symbol: string;
   color: string;
   depth: number;
 };
 
-const SYMBOLS = [
-  '+',
-  '−',
-  '×',
-  '÷',
-  '∑',
-  '∫',
-  'π',
-  '√',
-  '≈',
-  'A',
-  'B',
-  'C',
-  'X',
-  'Y',
-  'Z',
-  'H2O',
-  'Na',
-  'Cl',
-  'CO2',
-  'O2',
-  'F',
-  'v',
-  'a',
-  'E=mc²',
-  'λ',
-  'Ω',
-  '∆',
-  '°',
-  'µ',
-];
-
 const themePalettes: Record<ThemeMode, string[]> = {
-  default: ['rgba(54, 92, 197, 0.28)', 'rgba(77, 152, 208, 0.24)', 'rgba(70, 158, 146, 0.22)'],
-  dark: ['rgba(133, 175, 255, 0.28)', 'rgba(94, 226, 217, 0.22)', 'rgba(202, 219, 255, 0.18)'],
-  ocean: ['rgba(40, 155, 171, 0.28)', 'rgba(104, 211, 216, 0.25)', 'rgba(181, 240, 230, 0.18)'],
+  default: ['rgba(54, 92, 197, 0.18)', 'rgba(77, 152, 208, 0.22)', 'rgba(70, 158, 146, 0.18)'],
+  dark: ['rgba(133, 175, 255, 0.22)', 'rgba(94, 226, 217, 0.18)', 'rgba(202, 219, 255, 0.16)'],
+  ocean: ['rgba(40, 155, 171, 0.2)', 'rgba(104, 211, 216, 0.22)', 'rgba(181, 240, 230, 0.17)'],
 };
 
-function particleCount(width: number) {
+function particleGap(width: number) {
   if (width < 640) {
-    return 22;
+    return 42;
   }
 
   if (width < 1024) {
     return 34;
   }
 
-  return 50;
+  return 30;
 }
 
 function createParticles(width: number, height: number, theme: ThemeMode) {
-  const total = particleCount(width);
+  const gap = particleGap(width);
   const palette = themePalettes[theme];
+  const particles: Particle[] = [];
 
-  return Array.from({ length: total }, (_, index): Particle => {
-    const depth = 0.55 + Math.random() * 0.9;
+  for (let x = gap * 0.5; x < width; x += gap) {
+    for (let y = gap * 0.5; y < height; y += gap) {
+      const depth = 0.7 + Math.random() * 0.8;
 
-    return {
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.18 * depth,
-      vy: (Math.random() - 0.5) * 0.18 * depth,
-      phase: Math.random() * Math.PI * 2,
-      size: width < 640 ? 12 + Math.random() * 9 : 14 + Math.random() * 12,
-      alpha: 0.45 + Math.random() * 0.35,
-      symbol: SYMBOLS[index % SYMBOLS.length],
-      color: palette[index % palette.length],
-      depth,
-    };
-  });
+      particles.push({
+        ox: x,
+        oy: y,
+        x,
+        y,
+        vx: 0,
+        vy: 0,
+        phase: Math.random() * Math.PI * 2,
+        size: width < 640 ? 1 + Math.random() * 1.6 : 1.2 + Math.random() * 2.2,
+        alpha: 0.14 + Math.random() * 0.28,
+        color: palette[particles.length % palette.length],
+        depth,
+      });
+    }
+  }
+
+  return particles;
 }
 
 export function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Particle[]>([]);
-  const mouseRef = useRef({ x: 0, y: 0, active: false });
+  const pointerRef = useRef({
+    x: typeof window === 'undefined' ? 0 : window.innerWidth * 0.5,
+    y: typeof window === 'undefined' ? 0 : window.innerHeight * 0.5,
+    tx: typeof window === 'undefined' ? 0 : window.innerWidth * 0.5,
+    ty: typeof window === 'undefined' ? 0 : window.innerHeight * 0.5,
+    vx: 0,
+    vy: 0,
+    speed: 0,
+    active: false,
+  });
   const reducedMotion = useReducedMotion();
   const { theme } = useTheme();
 
@@ -125,38 +109,59 @@ export function ParticleBackground() {
     const render = (time: number) => {
       context.clearRect(0, 0, width, height);
 
+      pointerRef.current.vx += (pointerRef.current.tx - pointerRef.current.x) * 0.16;
+      pointerRef.current.vy += (pointerRef.current.ty - pointerRef.current.y) * 0.16;
+      pointerRef.current.vx *= 0.68;
+      pointerRef.current.vy *= 0.68;
+      pointerRef.current.x += pointerRef.current.vx;
+      pointerRef.current.y += pointerRef.current.vy;
+      pointerRef.current.speed = Math.hypot(pointerRef.current.vx, pointerRef.current.vy);
+
       particlesRef.current.forEach((particle) => {
         if (!reducedMotion) {
-          particle.phase += 0.004 * particle.depth;
-          particle.x += particle.vx + Math.cos(time * 0.00022 + particle.phase) * 0.08 * particle.depth;
-          particle.y += particle.vy + Math.sin(time * 0.00018 + particle.phase) * 0.08 * particle.depth;
+          particle.phase += 0.0045 * particle.depth;
 
-          if (mouseRef.current.active) {
-            const dx = particle.x - mouseRef.current.x;
-            const dy = particle.y - mouseRef.current.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const radius = width < 768 ? 120 : 180;
+          if (pointerRef.current.active) {
+            const dx = particle.x - pointerRef.current.x;
+            const dy = particle.y - pointerRef.current.y;
+            const distance = Math.sqrt(dx * dx + dy * dy) || 0.001;
+            const radius = width < 768 ? 120 : 170;
 
-            if (distance < radius && distance > 0.001) {
+            if (distance < radius) {
               const influence = (radius - distance) / radius;
-              particle.x += (dx / distance) * influence * 1.8 * particle.depth;
-              particle.y += (dy / distance) * influence * 1.8 * particle.depth;
+              const swirl = (0.018 + pointerRef.current.speed * 0.0024) * particle.depth;
+              const push = 0.55 + pointerRef.current.speed * 0.018;
+              particle.vx += (dx / distance) * influence * push + -dy * swirl * influence;
+              particle.vy += (dy / distance) * influence * push + dx * swirl * influence;
             }
           }
 
-          if (particle.x < -80) particle.x = width + 40;
-          if (particle.x > width + 80) particle.x = -40;
-          if (particle.y < -80) particle.y = height + 40;
-          if (particle.y > height + 80) particle.y = -40;
+          particle.vx +=
+            (particle.ox - particle.x) * 0.036 +
+            Math.cos(time * 0.0012 + particle.phase) * 0.032 * particle.depth;
+          particle.vy +=
+            (particle.oy - particle.y) * 0.036 +
+            Math.sin(time * 0.001 + particle.phase * 1.2) * 0.032 * particle.depth;
+          particle.vx *= 0.9;
+          particle.vy *= 0.9;
+          particle.x += particle.vx;
+          particle.y += particle.vy;
         }
 
         context.save();
-        context.globalAlpha = particle.alpha;
+        const dx = particle.x - pointerRef.current.x;
+        const dy = particle.y - pointerRef.current.y;
+        const distance = Math.sqrt(dx * dx + dy * dy) || 0.001;
+        const radius = width < 768 ? 120 : 170;
+        const influence = pointerRef.current.active ? Math.max(0, 1 - distance / radius) : 0;
+
+        context.globalAlpha = particle.alpha + influence * 0.16;
         context.fillStyle = particle.color;
-        context.font = `${Math.round(480 + particle.depth * 160)} ${particle.size}px "Manrope", sans-serif`;
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(particle.symbol, particle.x, particle.y);
+        context.shadowColor = particle.color;
+        context.shadowBlur = 12 + influence * 16;
+        context.beginPath();
+        context.arc(particle.x, particle.y, particle.size + influence * 1.6, 0, Math.PI * 2);
+        context.fill();
         context.restore();
       });
 
@@ -166,15 +171,13 @@ export function ParticleBackground() {
     };
 
     const onPointerMove = (event: PointerEvent) => {
-      mouseRef.current = {
-        x: event.clientX,
-        y: event.clientY,
-        active: true,
-      };
+      pointerRef.current.tx = event.clientX;
+      pointerRef.current.ty = event.clientY;
+      pointerRef.current.active = true;
     };
 
     const onPointerLeave = () => {
-      mouseRef.current.active = false;
+      pointerRef.current.active = false;
     };
 
     resize();
@@ -184,6 +187,7 @@ export function ParticleBackground() {
     } else {
       animationFrame = window.requestAnimationFrame(render);
       window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerleave', onPointerLeave);
       window.addEventListener('blur', onPointerLeave);
     }
 
@@ -193,6 +197,7 @@ export function ParticleBackground() {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', resize);
       window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerleave', onPointerLeave);
       window.removeEventListener('blur', onPointerLeave);
     };
   }, [reducedMotion, theme]);
